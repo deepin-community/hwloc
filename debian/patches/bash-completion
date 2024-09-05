@@ -1,0 +1,63 @@
+commit 1a6f64b4905545ad0b6740ef0fb315b5857c638b
+Author: Tavis Rudd <tavis@damnsimple.com>
+Date:   Tue Jul 2 14:55:30 2024 -0700
+
+    fix: multiple syntax errors / missing quotes in hwloc bash completions
+    
+    ```
+    -bash: /opt/homebrew/etc/bash_completion.d/hwloc: line 210: syntax error near unexpected token `<'
+    -bash: /opt/homebrew/etc/bash_completion.d/hwloc: line 210: `           COMPREPLY=( "<integer>" "" )'
+    -bash: /opt/homebrew/etc/bash_completion.d/hwloc: line 211: syntax error near unexpected token `;;'
+    -bash: /opt/homebrew/etc/bash_completion.d/hwloc: line 211: `           ;;'
+    ```
+    and
+    ```
+    > shellcheck /opt/homebrew/etc/bash_completion.d/hwloc
+    
+    In /opt/homebrew/etc/bash_completion.d/hwloc line 295:
+                    COMPREPLY=( "hwloc" "list" taskset" )
+                    ^-- SC1009 (info): The mentioned syntax error was in this variable assignment.
+                              ^-- SC1073 (error): Couldn't parse this array assignment. Fix to allow more checks.
+                                                      ^-- SC1078 (warning): Did you forget to close this double quoted string?
+    ```
+
+diff --git a/contrib/completion/bash/hwloc b/contrib/completion/bash/hwloc
+index 8649b3938..f091e075d 100644
+--- a/contrib/completion/bash/hwloc
++++ b/contrib/completion/bash/hwloc
+@@ -148,7 +148,7 @@ _lstopo() {
+ 	        COMPREPLY=( `compgen -W "links merge-switch-ports transitive-closure" -- "$cur"` )
+ 		;;
+ 	    --cpuset-output-format | --cof)
+-	        COMPREPLY=( "hwloc" "list" taskset" )
++	        COMPREPLY=( "hwloc" "list" "taskset" )
+ 		;;
+ 	esac
+     fi
+@@ -293,7 +293,7 @@ _hwloc_bind(){
+ 		COMPREPLY=( "<memattr>" "" )
+ 		;;
+ 	    --cpuset-output-format | --cof)
+-	        COMPREPLY=( "hwloc" "list" taskset" )
++	        COMPREPLY=( "hwloc" "list" "taskset" )
+ 		;;
+ 	esac
+     fi
+@@ -373,7 +373,7 @@ _hwloc_calc(){
+ 		COMPREPLY=( "<name>=<value>" "<n>" "" )
+ 		;;
+ 	    --cpuset-input-format | --cif | --cpuset-output-format | --cof)
+-	        COMPREPLY=( "hwloc" "list" taskset" )
++	        COMPREPLY=( "hwloc" "list" "taskset" )
+ 		;;
+ 	esac
+     fi
+@@ -488,7 +488,7 @@ _hwloc_distrib(){
+ 		COMPREPLY=( "<integer>" "" )
+ 		;;
+ 	    --cpuset-output-format | --cof)
+-	        COMPREPLY=( "hwloc" "list" taskset" )
++	        COMPREPLY=( "hwloc" "list" "taskset" )
+ 		;;
+ 	esac
+     fi

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2009-2020 Inria.  All rights reserved.
+ * Copyright © 2009-2024 Inria.  All rights reserved.
  * Copyright © 2009-2012 Université Bordeaux
  * See COPYING in top-level directory.
  */
@@ -89,15 +89,6 @@ typedef struct _SIZE {
 typedef PVOID HANDLE; */
 typedef int HANDLE;
 
-#ifdef __GNUC__
-#define _ANONYMOUS_UNION __extension__
-#define _ANONYMOUS_STRUCT __extension__
-#else
-#define _ANONYMOUS_UNION
-#define _ANONYMOUS_STRUCT
-#endif /* __GNUC__ */
-#define DUMMYUNIONNAME
-#define DUMMYSTRUCTNAME
 #define WINAPI
 
 #define ANYSIZE_ARRAY 1
@@ -294,6 +285,8 @@ HICON WINAPI LoadIcon(HINSTANCE hInstance, LPCTSTR lpIconName);
 int WINAPI GetSystemMetrics(int nIndex);
 
 ATOM WINAPI RegisterClass(const WNDCLASS *lpWndClass);
+
+#define TEXT(str) (str)
 
 /* hide Linux' host disabling _SC_LARGE_PAGESIZE */
 #undef HAVE_DECL__SC_LARGE_PAGESIZE

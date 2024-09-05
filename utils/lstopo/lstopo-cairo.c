@@ -90,14 +90,13 @@ topo_cairo_box(struct lstopo_output *loutput, const struct lstopo_color *lcolor,
 }
 
 static void
-topo_cairo_line(struct lstopo_output *loutput, const struct lstopo_color *lcolor, unsigned depth __hwloc_attribute_unused, unsigned x1, unsigned y1, unsigned x2, unsigned y2, hwloc_obj_t obj __hwloc_attribute_unused, unsigned line_id __hwloc_attribute_unused)
+topo_cairo_line(struct lstopo_output *loutput, unsigned depth __hwloc_attribute_unused, unsigned x1, unsigned y1, unsigned x2, unsigned y2, hwloc_obj_t obj __hwloc_attribute_unused, unsigned line_id __hwloc_attribute_unused)
 {
   struct lstopo_cairo_output *coutput = loutput->backend_data;
   cairo_t *c = coutput->context;
-  int r = lcolor->r, g = lcolor->g, b = lcolor->b;
 
   cairo_move_to(c, x1, y1);
-  cairo_set_source_rgb(c, (float) r / 255, (float) g / 255, (float) b / 255);
+  cairo_set_source_rgb(c, 0, 0, 0);
   cairo_line_to(c, x2, y2);
   cairo_stroke(c);
 }
@@ -318,6 +317,7 @@ output_x11(struct lstopo_output *loutput, const char *dummy __hwloc_attribute_un
   struct lstopo_cairo_output *coutput;
   Display *dpy;
   Window root, top;
+  XClassHint *class_hint;
   int scr;
   Screen *screen;
   int screen_width, screen_height;
@@ -388,6 +388,12 @@ output_x11(struct lstopo_output *loutput, const char *dummy __hwloc_attribute_un
   disp->top = top = XCreateSimpleWindow(dpy, root, 0, 0, screen_width, screen_height, 0, WhitePixel(dpy, scr), WhitePixel(dpy, scr));
   XStoreName(dpy, top, loutput->title);
   XSetIconName(dpy, top, "lstopo");
+  class_hint = XAllocClassHint();
+  if (class_hint) {
+    class_hint->res_name = class_hint->res_class = (char *) "lstopo";
+    XSetClassHint(dpy, top, class_hint);
+    XFree(class_hint);
+  }
   XSelectInput(dpy,top, StructureNotifyMask | KeyPressMask);
 
   if (screen_width >= screen->width)

@@ -1,5 +1,5 @@
 #
-# Copyright © 2018-2021 Inria.  All rights reserved.
+# Copyright © 2018-2024 Inria.  All rights reserved.
 # See COPYING in top-level directory.
 #
 
@@ -12,16 +12,18 @@
 
 _lstopo() {
     local INPUT_FORMAT=(xml synthetic fsroot cpuid)
-    local OUTPUT_FORMAT=(console ascii tikz fig pdf ps png svg xml synthetic)
+    local OUTPUT_FORMAT=(default window console ascii tikz tex fig pdf nativesvg cairosvg ps png svg xml shmem synthetic)
     local TYPES=("Machine" "Misc" "Group" "NUMANode" "MemCache" "Package" "Die" "L1" "L2" "L3" "L4" "L5" "L1i" "L2i" "L3i" "Core" "Bridge" "PCIDev" "OSDev" "PU")
     local FILTERKINDS=("none" "all" "structure" "important")
     local OPTIONS=(-l --logical
 		   -p --physical
-		   --output-format --of
+                   --logical-index-prefix
+                   --os-index-prefix
+                   --output-format --of
 		   -f --force
 		   --only
 		   -v --verbose
-		   -s --silent
+		   -q --quiet -s --silent
 		   --distances
 		   --distances-transform
 		   --memattrs
@@ -29,7 +31,7 @@ _lstopo() {
 		   --windows-processor-groups
 		   -c --cpuset
 		   -C --cpuset-only
-		   --taskset
+		   --cpuset-output-format --cof
 		   --filter --ignore
 		   --no-caches
 		   --no-useless-caches
@@ -69,12 +71,15 @@ _lstopo() {
 		   --no-legend
 		   --no-default-legend
 		   --append-legend
+		   --grey --greyscale
+		   --palette
 		   --binding-color
 		   --disallowed-color
 		   --top-color
 		   --export-xml-flags
 		   --export-synthetic-flags
 		   --ps --top
+		   --misc-from
 		   --version
 		   -h --help
 		  )
@@ -108,6 +113,9 @@ _lstopo() {
 	    --restrict)
 		COMPREPLY=( `compgen -W "binding <cpuset>" -- "$cur"` )
 		;;
+            --logical-index-prefix | --os-index-prefix)
+	        COMPREPLY=( "<string>" "" )
+		;;
 	    -i | --input)
 		_filedir xml
 		;;
@@ -126,17 +134,20 @@ _lstopo() {
 	    --append-legend)
 		COMPREPLY=( "<line of text>" "" )
 		;;
-	    --binding-color | --disallowed-color)
-		COMPREPLY=( `compgen -W "none" -- "$cur"` )
+	    --palette)
+		COMPREPLY=( `compgen -W "grey" "greyscale" "default" "colors" "white" "none" -- "$cur"` )
 		;;
-	    --top-color)
-		COMPREPLY=( `compgen -W "none <#xxyyzz>" -- "$cur"` )
+	    --binding-color | --disallowed-color | --top-color)
+		COMPREPLY=( `compgen -W "none <#rrggbb>" -- "$cur"` )
 		;;
 	    --children-order)
 		COMPREPLY=( `compgen -W "plain memoryabove" -- "$cur"` )
 		;;
 	    --distances-transform)
 	        COMPREPLY=( `compgen -W "links merge-switch-ports transitive-closure" -- "$cur"` )
+		;;
+	    --cpuset-output-format | --cof)
+	        COMPREPLY=( "hwloc" "list" taskset" )
 		;;
 	esac
     fi
@@ -153,7 +164,8 @@ _hwloc_info(){
 		   --topology
 		   --support
 		   -v --verbose
-		   -s --silent
+		   -q --quiet -s --silent
+		   --get-attr
 		   --ancestors
 		   --ancestor
 		   --children
@@ -161,6 +173,7 @@ _hwloc_info(){
 		   --local-memory
 		   --local-memory-flags
 		   --best-memattr
+		   --first
 		   -n
 		   --restrict
 		   --restrict-flags
@@ -209,13 +222,16 @@ _hwloc_info(){
 		COMPREPLY=( `compgen -W "${TYPES[*]/%/:} cache: icache: io:" -- "$cur"` ) && compopt -o nospace
 		;;
 	    --ancestor | --descendants)
-		COMPREPLY=( `compgen -W "${TYPES[*]}" -- "$cur"` )
+		COMPREPLY=( `compgen -W "${TYPES[*]}" -- "$cur"` kind=normal kind=cpu kind=cache kind=memory kind=io kind=all )
 		;;
 	    --local-memory-flags)
 		COMPREPLY=( "<flags>" "" )
 		;;
 	    --best-memattr)
 		COMPREPLY=( "<memattr>" "" )
+		;;
+	    --get-attr)
+		COMPREPLY=( "<name>" "" )
 		;;
 	esac
     fi
@@ -237,7 +253,7 @@ _hwloc_bind(){
 		   --nodeset
 		   --pid
 		   --tid
-		   --taskset
+		   --cpuset-output-format --cof
 		   --restrict
 		   --restrict-flags
 		   --disallowed --whole-system
@@ -275,6 +291,9 @@ _hwloc_bind(){
 	    --best-memattr)
 		COMPREPLY=( "<memattr>" "" )
 		;;
+	    --cpuset-output-format | --cof)
+	        COMPREPLY=( "hwloc" "list" taskset" )
+		;;
 	esac
     fi
 }
@@ -299,8 +318,9 @@ _hwloc_calc(){
 		   -n --nodeset
 		   --ni --nodeset-input
 		   --no --nodeset-output
+                   --oo --object-output
 		   --sep
-		   --taskset
+		   --cpuset-input-format --cif --cpuset-output-format --cof
 		   --single
 		   --restrict
 		   --restrict-flags
@@ -351,6 +371,9 @@ _hwloc_calc(){
 	    --cpukind)
 		COMPREPLY=( "<name>=<value>" "<n>" "" )
 		;;
+	    --cpuset-input-format | --cif | --cpuset-output-format | --cof)
+	        COMPREPLY=( "hwloc" "list" taskset" )
+		;;
 	esac
     fi
 }
@@ -383,6 +406,7 @@ _hwloc_diff(){
 	case "$prev" in
 	    --refname)
 		COMPREPLY=( "<reference topology identifier>" "")
+		return
 		;;
 	esac
     fi
@@ -435,7 +459,7 @@ _hwloc_distrib(){
 		   --input -i
 		   --input-format --if
 		   --single
-		   --taskset
+		   --cpuset-output-format --cof
 		   -v --verbose
 		   --version
 		   -h --help
@@ -462,6 +486,9 @@ _hwloc_distrib(){
 	    --restrict-flags)
 		COMPREPLY=( "<integer>" "" )
 		;;
+	    --cpuset-output-format | --cof)
+	        COMPREPLY=( "hwloc" "list" taskset" )
+		;;
 	esac
     fi
 }
@@ -471,6 +498,7 @@ complete -F _hwloc_distrib hwloc-distrib
 _hwloc_ps(){
     local OPTIONS=(-a
 		   --pid
+		   --children-of-pid
 		   --name
 		   --uid
 		   -l --logical
@@ -482,6 +510,7 @@ _hwloc_ps(){
 		   --pid-cmd
 		   --short-name
 		   --disallowed --whole-system
+		   --lstopo-misc
 		   --json-server
 		   --json-port
 		   -v --verbose
@@ -501,7 +530,7 @@ _hwloc_ps(){
 	--uid)
 	    COMPREPLY=( "<uid>" "all" "" )
 	    ;;
-	--pid)
+	--pid|--children-of-pid)
 	    COMPREPLY=( "<pid>" "" )
 	    ;;
 	--pid-cmd)
@@ -518,7 +547,7 @@ complete -F _hwloc_ps hwloc-ps
 
 _hwloc_gather_cpuid(){
     local OPTIONS=(-c
-		   -s --silent
+		   -q --quiet -s --silent
 		   --version
 		   -h --help
 		   )
@@ -541,6 +570,7 @@ complete -F _hwloc_gather_cpuid hwloc-gather-cpuid
 _hwloc_gather_topology(){
     local OPTIONS=(--io
 		   --dmi
+		   --dt
 		   --no-cpuid
 		   --keep
 		   --version

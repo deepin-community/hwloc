@@ -6,14 +6,14 @@
 typedef int io_registry_entry_t;
 typedef int io_iterator_t;
 typedef int io_object_t;
-typedef const char io_name_t[10];
-typedef const char * io_string_t;
+typedef const char io_name_t[128];
+typedef const char io_string_t[512];
 
 typedef int kern_return_t;
 #define KERN_SUCCESS 0
 
 typedef int mach_port_t;
-#define kIOMasterPortDefault 0
+#define kIOMainPortDefault 0
 extern io_registry_entry_t IORegistryEntryFromPath(mach_port_t, const io_string_t);
 extern kern_return_t IOObjectRelease(io_object_t);
 

@@ -1,4 +1,4 @@
-# Copyright © 2009-2020 Inria.  All rights reserved.
+# Copyright © 2009-2023 Inria.  All rights reserved.
 # Copyright © 2009-2011 Université Bordeaux
 # Copyright © 2009-2010 Cisco Systems, Inc.  All rights reserved.
 # See COPYING in top-level directory.
@@ -54,16 +54,19 @@ sysfs_outputs = \
 		64intel64-fakeKNL-SNC4-hybrid-msc.output \
 		96em64t-4n4d3ca2co.output \
 		128ia64-17n4s2c.output \
+		128arm-2pa2n8cluster4co.output \
 		256ia64-64n2s2c.output \
 		2s390-2c.output \
+		20em64t-hybrid-1p6c2t+2ca4co1t.output \
 		20s390-2g6s4c.output \
-		1alpha.output \
 		2arm-2c.output \
 		nvidiagpunumanodes.output \
 		nvidiagpunumanodes.kept.output \
 		fakememinitiators-1np2c+1npp+gi.output \
 		fakecpuid1f-64intel64-2p4d2n2c2t.output \
 		fakeheterocpunuma.output \
+		fakeheteromemtiers.output \
+		memorysidecaches.output \
 		offline-cpu0-node0.output
 
 if HWLOC_HAVE_32BITS_PCI_DOMAIN
@@ -123,10 +126,11 @@ sysfs_tarballs = \
 		64intel64-fakeKNL-SNC4-hybrid-msc.source \
 		96em64t-4n4d3ca2co.tar.bz2 \
 		128ia64-17n4s2c.tar.bz2 \
+		128arm-2pa2n8cluster4co.tar.bz2 \
 		256ia64-64n2s2c.tar.bz2 \
 		2s390-2c.tar.bz2 \
+		20em64t-hybrid-1p6c2t+2ca4co1t.tar.bz2 \
 		20s390-2g6s4c.tar.bz2 \
-		1alpha.tar.bz2 \
 		2arm-2c.tar.bz2 \
 		2pa-pcidomain32bits.tar.bz2 \
 		2pa-pcidomain32bits-disabled.source \
@@ -135,6 +139,8 @@ sysfs_tarballs = \
 		fakememinitiators-1np2c+1npp+gi.tar.bz2 \
 		fakecpuid1f-64intel64-2p4d2n2c2t.tar.bz2 \
 		fakeheterocpunuma.tar.bz2 \
+		fakeheteromemtiers.tar.bz2 \
+		memorysidecaches.tar.bz2 \
 		offline-cpu0-node0.tar.bz2
 
 # Each output `xyz.output' may have a corresponding exclude `xyz.exclude'

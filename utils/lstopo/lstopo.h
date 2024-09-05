@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2021 Inria.  All rights reserved.
+ * Copyright © 2009-2024 Inria.  All rights reserved.
  * Copyright © 2009-2010, 2012, 2015 Université Bordeaux
  * Copyright © 2011 Cisco Systems, Inc.  All rights reserved.
  * Copyright © 2020 Hewlett Packard Enterprise.  All rights reserved.
@@ -13,6 +13,7 @@
 #include "private/autogen/config.h"
 #include "hwloc.h"
 #include "misc.h"
+#include "hwloc-calc.h"
 
 enum lstopo_drawing_e {
   LSTOPO_DRAWING_PREPARE,
@@ -100,9 +101,9 @@ struct lstopo_output {
   int show_memattrs_only;
   int show_cpukinds_only;
   int show_windows_processor_groups_only;
-  hwloc_obj_type_t show_only;
+  struct hwloc_calc_level show_only;
   int show_cpuset;
-  int show_taskset;
+  enum hwloc_utils_cpuset_format_e cpuset_output_format;
   int transform_distances;
 
   /* draw config */
@@ -111,6 +112,7 @@ struct lstopo_output {
   unsigned int gridsize, fontsize, linespacing, thickness;
   float text_xscale;
   enum lstopo_orient_e force_orient[HWLOC_OBJ_TYPE_MAX]; /* orientation of children within an object of the given type */
+  enum lstopo_orient_e above_force_orient;
   enum lstopo_orient_e right_force_orient;
   enum lstopo_orient_e below_force_orient;
   int show_indexes[HWLOC_OBJ_TYPE_MAX]; /* enabled by global toggle index_type */
@@ -120,13 +122,17 @@ struct lstopo_output {
   int show_attrs[HWLOC_OBJ_TYPE_MAX];
   int show_binding;
   int show_disallowed;
+  int show_process_color;
   int show_cpukinds;
+  char *logical_index_prefix;
+  char *os_index_prefix;
   int factorize_enabled; /* global toggle for interactive keyboard shortcuts */
   unsigned factorize_min[HWLOC_OBJ_TYPE_MAX]; /* minimum number of object before factorizing (parent->arity must be strictly higher) */
 #define FACTORIZE_MIN_DEFAULT 4
 #define FACTORIZE_MIN_DISABLED UINT_MAX
   unsigned factorize_first[HWLOC_OBJ_TYPE_MAX]; /* number of first children to keep before factorizing */
   unsigned factorize_last[HWLOC_OBJ_TYPE_MAX]; /* number of last children to keep after factorizing */
+  struct lstopo_color_palette *palette;
 
   /* draw internal data */
   void *backend_data;
@@ -162,6 +168,35 @@ struct lstopo_color {
   /* list of colors */
   struct lstopo_color *next;
 };
+
+struct lstopo_color_palette {
+  struct lstopo_color
+    white, /* used for legend background, and text on dark background */
+    black, /* used for text on light background, and legend text */
+    /* all colors below are box backgrounds */
+    machine,
+    group,
+    package,
+    group_in_package,
+    die,
+    core,
+    pu,
+    numanode,
+    memories,
+    cache,
+    pcidev,
+    osdev,
+    bridge,
+    misc,
+    binding,
+    disallowed,
+    process;
+};
+
+extern void lstopo_palette_init(struct lstopo_output *loutput);
+extern void lstopo_palette_select(struct lstopo_output *loutput, const char *name);
+extern void lstopo_palette_set_color(struct lstopo_color *color, unsigned rrggbb);
+extern void lstopo_palette_set_color_by_name(struct lstopo_output *output, const char *name, unsigned rrggbb);
 
 struct lstopo_style {
   struct lstopo_color
@@ -260,7 +295,7 @@ struct draw_methods {
   void (*destroy_color) (struct lstopo_output *loutput, struct lstopo_color *lcolor);
   /* only called when loutput->draw_methods == LSTOPO_DRAWING_DRAW */
   void (*box) (struct lstopo_output *loutput, const struct lstopo_color *lcolor, unsigned depth, unsigned x, unsigned width, unsigned y, unsigned height, hwloc_obj_t obj, unsigned box_id);
-  void (*line) (struct lstopo_output *loutput, const struct lstopo_color *lcolor, unsigned depth, unsigned x1, unsigned y1, unsigned x2, unsigned y2, hwloc_obj_t obj, unsigned line_id);
+  void (*line) (struct lstopo_output *loutput, unsigned depth, unsigned x1, unsigned y1, unsigned x2, unsigned y2, hwloc_obj_t obj, unsigned line_id);
   void (*text) (struct lstopo_output *loutput, const struct lstopo_color *lcolor, int size, unsigned depth, unsigned x, unsigned y, const char *text, hwloc_obj_t obj, unsigned text_id);
   /* may be called when loutput->drawing == LSTOPO_DRAWING_PREPARE */
   void (*textsize) (struct lstopo_output *loutput, const char *text, unsigned textlength, unsigned fontsize, unsigned *width);
