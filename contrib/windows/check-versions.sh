@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright © 2018-2021 Inria.  All rights reserved.
+# Copyright © 2018-2023 Inria.  All rights reserved.
 # $COPYRIGHT$
 #
 
@@ -10,13 +10,18 @@ function die() {
 }
 
 if test "x$1" = "x-h" -o "x$1" = "x--help"; then
-  echo "$0 [--quiet] [git root directory]"
+  echo "$0 [--quiet] [--update] [git root directory]"
   exit 0
 fi
 
 echo=echo
 if test "x$1" = "x--quiet"; then
   echo=true
+  shift
+fi
+
+if test "x$1" = "x--update"; then
+  update=1
   shift
 fi
 
@@ -43,9 +48,20 @@ if [ -z "$official_major" -o -z "$official_minor" -o -z "$official_release" ]; t
 	die "ERROR in $version_file: Failed to get official HWLOC_VERSION_MAJOR/MINOR/RELEASE/GREEK"
 fi
 $echo "  Found major=$official_major minor=$official_minor release=$official_release greek=$official_greek"
-official_version_nogreek="$official_major.$official_minor.$official_release"
+official_version="$official_major.$official_minor.$official_release$official_greek"
 
 $echo
+
+### WINDOWS UPDATE? ###
+if test "x$update" = "x1"; then
+  $echo "Updating Windows VERSION in $windows_config_h ..."
+  sed -r -e '/define HWLOC_VERSION "/s/"[0-9a-zA-Z\.-]+"/"'$official_version'"/' -i "$windows_config_h"
+  sed -r -e '/define HWLOC_VERSION_MAJOR /s/[0-9]+/'$official_major'/' -i "$windows_config_h"
+  sed -r -e '/define HWLOC_VERSION_MINOR /s/[0-9]+/'$official_minor'/' -i "$windows_config_h"
+  sed -r -e '/define HWLOC_VERSION_RELEASE /s/[0-9]+/'$official_release'/' -i "$windows_config_h"
+  sed -r -e '/define HWLOC_VERSION_GREEK "/s/"[0-9a-zA-Z\.-]*"/"'$official_greek'"/' -i "$windows_config_h"
+  $echo
+fi
 
 ### WINDOWS CHECKS ###
 $echo "Looking for Windows-specific version in $windows_config_h ..."
@@ -68,11 +84,11 @@ if [ "$windows_version" != "$expected_windows_version" ]; then
 fi
 $echo "  Windows-specific HWLOC_VERSION \"$windows_version\" matches HWLOC_VERSION_MAJOR/MINOR/RELEASE/GREEK components"
 
-# check that it matches the official version, without a GREEK
-if [ "$official_version_nogreek" != "$windows_version" ]; then
-	die "ERROR in $windows_config_h: Windows-specific HWLOC_VERSION \"$windows_version\" doesn't match the official \"$official_version_nogreek\" without GREEK"
+# check that it matches the official version
+if [ "$official_version" != "$windows_version" ]; then
+	die "ERROR in $windows_config_h: Windows-specific HWLOC_VERSION \"$windows_version\" doesn't match the official \"$official_version\""
 fi
-$echo "  Windows-specific HWLOC_VERSION \"$windows_version\" matches official version without GREEK"
+$echo "  Windows-specific HWLOC_VERSION \"$windows_version\" matches official version"
 
 $echo
 

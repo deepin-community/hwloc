@@ -14,7 +14,7 @@
 
 @SET_MAKE@
 
-# Copyright © 2009-2020 Inria.  All rights reserved.
+# Copyright © 2009-2023 Inria.  All rights reserved.
 # Copyright © 2009-2011 Université Bordeaux
 # Copyright © 2009-2010 Cisco Systems, Inc.  All rights reserved.
 # See COPYING in top-level directory.
@@ -108,8 +108,7 @@ am__aclocal_m4_deps = $(top_srcdir)/config/hwloc.m4 \
 	$(top_srcdir)/config/ltoptions.m4 \
 	$(top_srcdir)/config/ltsugar.m4 \
 	$(top_srcdir)/config/ltversion.m4 \
-	$(top_srcdir)/config/lt~obsolete.m4 \
-	$(top_srcdir)/config/netloc.m4 $(top_srcdir)/configure.ac
+	$(top_srcdir)/config/lt~obsolete.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 DIST_COMMON = $(srcdir)/Makefile.am $(am__DIST_COMMON)
@@ -416,7 +415,6 @@ BASH = @BASH@
 BUNZIPP = @BUNZIPP@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
-CC_FOR_BUILD = @CC_FOR_BUILD@
 CFLAGS = @CFLAGS@
 CONFIGURE_DEPENDENCIES = @CONFIGURE_DEPENDENCIES@
 CPP = @CPP@
@@ -445,6 +443,7 @@ ETAGS = @ETAGS@
 EXEEXT = @EXEEXT@
 FGREP = @FGREP@
 FIG2DEV = @FIG2DEV@
+FILECMD = @FILECMD@
 GREP = @GREP@
 GS = @GS@
 HWLOC_CAIRO_CFLAGS = @HWLOC_CAIRO_CFLAGS@
@@ -471,9 +470,11 @@ HWLOC_EMBEDDED_LIBS = @HWLOC_EMBEDDED_LIBS@
 HWLOC_GL_LIBS = @HWLOC_GL_LIBS@
 HWLOC_HAVE_LEVELZERO = @HWLOC_HAVE_LEVELZERO@
 HWLOC_HAVE_LIBXML2 = @HWLOC_HAVE_LIBXML2@
+HWLOC_HAVE_LINUX = @HWLOC_HAVE_LINUX@
 HWLOC_HAVE_NVML = @HWLOC_HAVE_NVML@
 HWLOC_HAVE_OPENCL = @HWLOC_HAVE_OPENCL@
 HWLOC_HAVE_RSMI = @HWLOC_HAVE_RSMI@
+HWLOC_HAVE_X86_CPUID = @HWLOC_HAVE_X86_CPUID@
 HWLOC_IBVERBS_LIBS = @HWLOC_IBVERBS_LIBS@
 HWLOC_LDFLAGS = @HWLOC_LDFLAGS@
 HWLOC_LEVELZERO_CFLAGS = @HWLOC_LEVELZERO_CFLAGS@
@@ -531,17 +532,6 @@ MAKEINDEX = @MAKEINDEX@
 MAKEINFO = @MAKEINFO@
 MANIFEST_TOOL = @MANIFEST_TOOL@
 MKDIR_P = @MKDIR_P@
-MPI_CPPFLAGS = @MPI_CPPFLAGS@
-MPI_LDADD = @MPI_LDADD@
-NETLOC_CFLAGS = @NETLOC_CFLAGS@
-NETLOC_CPPFLAGS = @NETLOC_CPPFLAGS@
-NETLOC_EMBEDDED_CFLAGS = @NETLOC_EMBEDDED_CFLAGS@
-NETLOC_EMBEDDED_CPPFLAGS = @NETLOC_EMBEDDED_CPPFLAGS@
-NETLOC_EMBEDDED_LDADD = @NETLOC_EMBEDDED_LDADD@
-NETLOC_EMBEDDED_LIBS = @NETLOC_EMBEDDED_LIBS@
-NETLOC_LDFLAGS = @NETLOC_LDFLAGS@
-NETLOC_LIBS = @NETLOC_LIBS@
-NETLOC_LIBS_PRIVATE = @NETLOC_LIBS_PRIVATE@
 NM = @NM@
 NMEDIT = @NMEDIT@
 OBJDUMP = @OBJDUMP@
@@ -608,8 +598,8 @@ infodir = @infodir@
 install_sh = @install_sh@
 libdir = @libdir@
 libexecdir = @libexecdir@
+libhwloc_so_name = @libhwloc_so_name@
 libhwloc_so_version = @libhwloc_so_version@
-libnetloc_so_version = @libnetloc_so_version@
 localedir = @localedir@
 localstatedir = @localstatedir@
 mandir = @mandir@
@@ -632,7 +622,6 @@ target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-xz = @xz@
 AM_CFLAGS = $(HWLOC_CFLAGS)
 AM_CPPFLAGS = $(HWLOC_CPPFLAGS)
 AM_LDFLAGS = $(HWLOC_LDFLAGS)
@@ -666,12 +655,14 @@ sysfs_outputs = 2amd64-2n.output 2i386-2t-hugepagesizecount.xml.output \
 	64intel64-fakeKNL-SNC4-hybrid.output \
 	64intel64-fakeKNL-SNC4-hybrid-msc.output \
 	96em64t-4n4d3ca2co.output 128ia64-17n4s2c.output \
-	256ia64-64n2s2c.output 2s390-2c.output 20s390-2g6s4c.output \
-	1alpha.output 2arm-2c.output nvidiagpunumanodes.output \
+	128arm-2pa2n8cluster4co.output 256ia64-64n2s2c.output \
+	2s390-2c.output 20em64t-hybrid-1p6c2t+2ca4co1t.output \
+	20s390-2g6s4c.output 2arm-2c.output nvidiagpunumanodes.output \
 	nvidiagpunumanodes.kept.output \
 	fakememinitiators-1np2c+1npp+gi.output \
 	fakecpuid1f-64intel64-2p4d2n2c2t.output \
-	fakeheterocpunuma.output offline-cpu0-node0.output \
+	fakeheterocpunuma.output fakeheteromemtiers.output \
+	memorysidecaches.output offline-cpu0-node0.output \
 	$(am__append_1) $(am__append_2)
 @HWLOC_HAVE_32BITS_PCI_DOMAIN_FALSE@EXTRA_DIST = 2pa-pcidomain32bits.output \
 @HWLOC_HAVE_32BITS_PCI_DOMAIN_FALSE@	$(sysfs_outputs) \
@@ -735,10 +726,11 @@ sysfs_tarballs = \
 		64intel64-fakeKNL-SNC4-hybrid-msc.source \
 		96em64t-4n4d3ca2co.tar.bz2 \
 		128ia64-17n4s2c.tar.bz2 \
+		128arm-2pa2n8cluster4co.tar.bz2 \
 		256ia64-64n2s2c.tar.bz2 \
 		2s390-2c.tar.bz2 \
+		20em64t-hybrid-1p6c2t+2ca4co1t.tar.bz2 \
 		20s390-2g6s4c.tar.bz2 \
-		1alpha.tar.bz2 \
 		2arm-2c.tar.bz2 \
 		2pa-pcidomain32bits.tar.bz2 \
 		2pa-pcidomain32bits-disabled.source \
@@ -747,6 +739,8 @@ sysfs_tarballs = \
 		fakememinitiators-1np2c+1npp+gi.tar.bz2 \
 		fakecpuid1f-64intel64-2p4d2n2c2t.tar.bz2 \
 		fakeheterocpunuma.tar.bz2 \
+		fakeheteromemtiers.tar.bz2 \
+		memorysidecaches.tar.bz2 \
 		offline-cpu0-node0.tar.bz2
 
 
@@ -1375,6 +1369,13 @@ recheck: all
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
+128arm-2pa2n8cluster4co.output.log: 128arm-2pa2n8cluster4co.output
+	@p='128arm-2pa2n8cluster4co.output'; \
+	b='128arm-2pa2n8cluster4co.output'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
 256ia64-64n2s2c.output.log: 256ia64-64n2s2c.output
 	@p='256ia64-64n2s2c.output'; \
 	b='256ia64-64n2s2c.output'; \
@@ -1389,16 +1390,16 @@ recheck: all
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-20s390-2g6s4c.output.log: 20s390-2g6s4c.output
-	@p='20s390-2g6s4c.output'; \
-	b='20s390-2g6s4c.output'; \
+20em64t-hybrid-1p6c2t+2ca4co1t.output.log: 20em64t-hybrid-1p6c2t+2ca4co1t.output
+	@p='20em64t-hybrid-1p6c2t+2ca4co1t.output'; \
+	b='20em64t-hybrid-1p6c2t+2ca4co1t.output'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-1alpha.output.log: 1alpha.output
-	@p='1alpha.output'; \
-	b='1alpha.output'; \
+20s390-2g6s4c.output.log: 20s390-2g6s4c.output
+	@p='20s390-2g6s4c.output'; \
+	b='20s390-2g6s4c.output'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
@@ -1441,6 +1442,20 @@ fakecpuid1f-64intel64-2p4d2n2c2t.output.log: fakecpuid1f-64intel64-2p4d2n2c2t.ou
 fakeheterocpunuma.output.log: fakeheterocpunuma.output
 	@p='fakeheterocpunuma.output'; \
 	b='fakeheterocpunuma.output'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+fakeheteromemtiers.output.log: fakeheteromemtiers.output
+	@p='fakeheteromemtiers.output'; \
+	b='fakeheteromemtiers.output'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+memorysidecaches.output.log: memorysidecaches.output
+	@p='memorysidecaches.output'; \
+	b='memorysidecaches.output'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \

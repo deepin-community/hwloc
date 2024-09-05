@@ -16,6 +16,8 @@
 #endif
 #include <string.h>
 
+#include "private/windows.h" /* must be before windows.h */
+
 #include <windows.h>
 #include <windowsx.h>
 
@@ -419,12 +421,11 @@ windows_box(struct lstopo_output *loutput, const struct lstopo_color *lcolor, un
 }
 
 static void
-windows_line(struct lstopo_output *loutput, const struct lstopo_color *lcolor, unsigned depth __hwloc_attribute_unused, unsigned x1, unsigned y1, unsigned x2, unsigned y2, hwloc_obj_t obj __hwloc_attribute_unused, unsigned line_id __hwloc_attribute_unused)
+windows_line(struct lstopo_output *loutput, unsigned depth __hwloc_attribute_unused, unsigned x1, unsigned y1, unsigned x2, unsigned y2, hwloc_obj_t obj __hwloc_attribute_unused, unsigned line_id __hwloc_attribute_unused)
 {
   struct lstopo_windows_output *woutput = loutput->backend_data;
   PAINTSTRUCT *ps = &woutput->ps;
 
-  SelectObject(ps->hdc, lcolor->private.windows.brush);
   MoveToEx(ps->hdc, x1 - x_delta, y1 - y_delta, NULL);
   LineTo(ps->hdc, x2 - x_delta, y2 - y_delta);
 }
@@ -470,7 +471,6 @@ int
 output_windows (struct lstopo_output *loutput, const char *dummy __hwloc_attribute_unused)
 {
   unsigned width, height;
-  HFONT font;
   MSG msg;
   RECT rect;
 
@@ -502,10 +502,18 @@ output_windows (struct lstopo_output *loutput, const char *dummy __hwloc_attribu
   /* recurse once for preparing sizes and positions using a fake top level window */
   loutput->drawing = LSTOPO_DRAWING_PREPARE;
   BeginPaint(toplevel, &the_output.ps);
-  font = CreateFont(loutput->fontsize, 0, 0, 0, 0, FALSE, FALSE, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, NULL);
-  SelectObject(the_output.ps.hdc, (HGDIOBJ) font);
+
+  font_default = CreateFont(loutput->fontsize, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, NULL);
+  if (loutput->nr_cpukind_styles > 1)
+    font_bold = CreateFont(loutput->fontsize, 0, 0, 0, FW_BOLD, FALSE, FALSE, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, NULL);
+  SelectObject(the_output.ps.hdc, (HGDIOBJ) font_default);
+
   output_draw(loutput);
-  DeleteObject(font);
+
+  DeleteObject(font_default);
+  if (loutput->nr_cpukind_styles > 1)
+    DeleteObject(font_bold);
+
   EndPaint(toplevel, &the_output.ps);
   loutput->drawing = LSTOPO_DRAWING_DRAW;
 
