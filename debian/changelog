@@ -1,3 +1,9 @@
+hwloc (2.11.0-2deepin1) unstable; urgency=medium
+
+  * feat: add sw64 support.
+
+ -- hudeng <hudeng@deepin.org>  Thu, 29 May 2025 16:08:07 +0800
+
 hwloc (2.11.0-2) unstable; urgency=medium
 
   * patches/bash-completion: Fix bash completion syntax error.
